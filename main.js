@@ -25,6 +25,7 @@ const teacherDashboard = document.getElementById("teacherDashboard");
 const studentDashboard = document.getElementById("studentDashboard");
 const homeworkForm = document.getElementById("homeworkForm");
 const homeworkItems = document.getElementById("homeworkItems");
+const logoutBtn = document.getElementById("logoutBtn"); // Added logout button ref
 
 // Signup handler
 document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -60,9 +61,13 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   }
 });
 
-// Logout handler
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await signOut(auth);
+// Logout handler - SHOWS logout button event listener
+logoutBtn.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    alert("Error signing out: " + error.message);
+  }
 });
 
 // Load homework for teacher (fixed with renamed variable and delete logic)
@@ -114,6 +119,8 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     authSection.style.display = "none";
     dashboard.style.display = "block";
+    logoutBtn.style.display = "inline-block"; // Show logout button when logged in
+
     userEmailSpan.textContent = user.email;
 
     const docRef = doc(db, "users", user.uid);
@@ -124,12 +131,11 @@ onAuthStateChanged(auth, async (user) => {
       if (role === "teacher") {
         teacherDashboard.style.display = "block";
         studentDashboard.style.display = "none";
-
-        // Load homework list
         await loadTeacherHomework(user.uid);
       } else {
         teacherDashboard.style.display = "none";
         studentDashboard.style.display = "block";
+        // Optionally load student homework here if you implement that feature
       }
     } else {
       alert("User role not found.");
@@ -137,6 +143,7 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     authSection.style.display = "block";
     dashboard.style.display = "none";
+    logoutBtn.style.display = "none"; // Hide logout button when logged out
     teacherDashboard.style.display = "none";
     studentDashboard.style.display = "none";
   }
@@ -173,11 +180,3 @@ if (homeworkForm) {
     }
   });
 }
-
-
-
-
-
-
-
-
