@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Homework Tracker</h1>
+
+  <div id="auth-section">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <select id="role">
+      <option value="student">Student</option>
+      <option value="teacher">Teacher</option>
+    </select>
+    <button id="signupBtn">Sign Up</button>
+    <button id="loginBtn">Log In</button>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <h2>Welcome, <span id="userEmail"></span></h2>
+
+    <div id="teacherDashboard" style="display:none;">
+      <h3>Teacher Homepage</h3>
+
+      <form id="homeworkForm">
+        <input type="text" id="homeworkTitle" placeholder="Homework title" required />
+        <textarea id="homeworkDescription" placeholder="Homework description" required></textarea>
+        <button type="submit">Add Homework</button>
+      </form>
+
+      <div id="homeworkList">
+        <h4>Assigned Homework</h4>
+        <ul id="homeworkItems"></ul>
+      </div>
+    </div>
+
+    <div id="studentDashboard" style="display:none;">
+      <h3>Student Dashboard</h3>
+      <p>Your assigned homework:</p>
+      <ul id="studentHomeworkList"></ul>
+    </div>
+
+    <!-- LOGOUT BUTTON HERE, visible for ALL logged-in users -->
+    <button id="logoutBtn" style="display:none;">Log Out</button>
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
+
+
+

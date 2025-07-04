@@ -1,0 +1,113 @@
+/* Base styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 10px;
+  padding: 0;
+  background: #f9f9f9;
+}
+
+h1, h2, h3, h4 {
+  color: #333;
+}
+
+/* Inputs and buttons full width and spacing */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea,
+select,
+button {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  padding: 12px 15px;
+  margin: 8px 0;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Button styling */
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Homework list */
+ul#homeworkItems,
+ul#studentHomeworkList {
+  list-style-type: none;
+  padding: 0;
+  max-width: 400px;
+  margin-top: 0;
+}
+
+ul#homeworkItems li,
+ul#studentHomeworkList li {
+  background: white;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Delete button in list */
+ul#homeworkItems li button {
+  width: auto;
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: #e53935;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+/* Checkbox and text in student homework list */
+ul#studentHomeworkList li input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  body {
+    margin: 5px;
+  }
+
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  textarea,
+  select,
+  button {
+    max-width: 100%;
+    font-size: 18px;
+    padding: 14px 18px;
+  }
+
+  ul#homeworkItems li,
+  ul#studentHomeworkList li {
+    font-size: 18px;
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  ul#homeworkItems li button {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
+}
