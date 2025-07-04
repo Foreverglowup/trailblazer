@@ -25,8 +25,6 @@ const teacherDashboard = document.getElementById("teacherDashboard");
 const studentDashboard = document.getElementById("studentDashboard");
 const homeworkForm = document.getElementById("homeworkForm");
 const homeworkItems = document.getElementById("homeworkItems");
-const studentHomeworkList = document.getElementById("studentHomeworkList");
-const logoutBtn = document.getElementById("logoutBtn");
 
 // Signup handler
 document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -35,7 +33,11 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
   const role = document.getElementById("role").value;
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
 
     // Save role in Firestore
@@ -59,11 +61,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 });
 
 // Logout handler
-logoutBtn.addEventListener("click", async () => {
+document.getElementById("logoutBtn").addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// Load homework for teacher
+// Load homework for teacher (fixed with renamed variable and delete logic)
 async function loadTeacherHomework(uid) {
   homeworkItems.innerHTML = "Loading homework...";
   const q = query(collection(db, "homeworks"), where("assignedBy", "==", uid));
@@ -76,11 +78,12 @@ async function loadTeacherHomework(uid) {
     return;
   }
 
-  querySnapshot.forEach((doc) => {
-    const hw = doc.data();
+  querySnapshot.forEach((hwDoc) => {
+    const hw = hwDoc.data();
     const li = document.createElement("li");
     li.textContent = `${hw.title} – ${hw.description} `;
 
+    // Create Delete button
     const delBtn = document.createElement("button");
     delBtn.textContent = "Delete";
     delBtn.style.marginLeft = "10px";
@@ -93,9 +96,9 @@ async function loadTeacherHomework(uid) {
 
     delBtn.addEventListener("click", async () => {
       try {
-        await deleteDoc(doc(db, "homeworks", doc.id));
+        await deleteDoc(doc(db, "homeworks", hwDoc.id));
         alert("Homework deleted!");
-        await loadTeacherHomework(uid);
+        await loadTeacherHomework(uid); // Refresh list
       } catch (error) {
         alert("Error deleting homework: " + error.message);
       }
@@ -106,34 +109,11 @@ async function loadTeacherHomework(uid) {
   });
 }
 
-// Load homework for student
-async function loadStudentHomework(uid) {
-  studentHomeworkList.innerHTML = "Loading homework...";
-  // Query homework assigned by any teacher (or you can filter by class etc)
-  const q = query(collection(db, "homeworks"));
-  const querySnapshot = await getDocs(q);
-
-  studentHomeworkList.innerHTML = "";
-
-  if (querySnapshot.empty) {
-    studentHomeworkList.textContent = "No homework assigned yet";
-    return;
-  }
-
-  querySnapshot.forEach((doc) => {
-    const hw = doc.data();
-    const li = document.createElement("li");
-    li.textContent = `${hw.title} – ${hw.description}`;
-    studentHomeworkList.appendChild(li);
-  });
-}
-
 // Auth state change handler
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     authSection.style.display = "none";
     dashboard.style.display = "block";
-    logoutBtn.style.display = "inline-block";
     userEmailSpan.textContent = user.email;
 
     const docRef = doc(db, "users", user.uid);
@@ -145,12 +125,11 @@ onAuthStateChanged(auth, async (user) => {
         teacherDashboard.style.display = "block";
         studentDashboard.style.display = "none";
 
+        // Load homework list
         await loadTeacherHomework(user.uid);
       } else {
         teacherDashboard.style.display = "none";
         studentDashboard.style.display = "block";
-
-        await loadStudentHomework(user.uid);
       }
     } else {
       alert("User role not found.");
@@ -160,7 +139,6 @@ onAuthStateChanged(auth, async (user) => {
     dashboard.style.display = "none";
     teacherDashboard.style.display = "none";
     studentDashboard.style.display = "none";
-    logoutBtn.style.display = "none";
   }
 });
 
@@ -188,12 +166,15 @@ if (homeworkForm) {
       alert("Homework added!");
       homeworkForm.reset();
 
+      // Refresh the list after adding new homework
       await loadTeacherHomework(auth.currentUser.uid);
     } catch (error) {
       alert("Error adding homework: " + error.message);
     }
   });
 }
+
+
 
 
 
