@@ -140,5 +140,8 @@ ul#studentHomeworkList li input[type="checkbox"] {
     width: 100%;
   }
 }
-
-
+#studentListContainer h4,
+#studentListContainer p,
+#studentListContainer li {
+  color: #22223b; /* Dark grey text for contrast */
+}
