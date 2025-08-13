@@ -1,64 +1,202 @@
-/* Homework form alignment fix */
-#homeworkForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* spacing between elements */
-  max-width: 400px; /* keeps inputs same width */
-}
+/* ----------------------
+   Base styling
+------------------------*/
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
 
-#homeworkForm input[type="text"],
-#homeworkForm textarea,
-#homeworkForm button {
-  width: 100%;
-  box-sizing: border-box;
+body {
   font-family: 'Merriweather', serif;
+  margin: 10px;
+  padding: 0;
+  background: #4a4e69; /* dark blue-gray */
+  color: #f2f2f2;
 }
 
-#homeworkForm input[type="text"],
-#homeworkForm textarea {
+h1, h2, h3, h4 {
+  color: #f2f2f2;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+/* ----------------------
+   Inputs, selects, textarea
+------------------------*/
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select,
+textarea {
+  font-family: 'Merriweather', serif;
+  font-size: 16px;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
   padding: 10px 12px;
+  margin: 6px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 16px;
+  font-weight: 400;
 }
 
-#homeworkForm textarea {
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select {
+  height: 40px;
+}
+
+textarea {
   min-height: 80px;
   resize: vertical;
   line-height: 1.4;
 }
 
-#homeworkForm button {
+/* ----------------------
+   Buttons
+------------------------*/
+button {
+  font-family: 'Merriweather', serif;
+  font-size: 16px;
+  width: 100%;
+  max-width: 400px;
   padding: 10px 16px;
+  margin: 6px 0;
   border-radius: 6px;
   border: none;
   font-weight: 700;
-  background-color: #9a8c98;
+  background-color: #9a8c98; /* muted mauve */
   color: #f2f2f2;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-#homeworkForm button:hover {
+button:hover {
   background-color: #c9ada7;
 }
 
-/* Make sure label spacing and box alignment are consistent */
-#homeworkForm .form-group {
+/* ----------------------
+   Forms alignment (teacher + student)
+------------------------*/
+form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  max-width: 400px;
 }
 
-/* Responsive tweak */
+/* Homework form specifically */
+#homeworkForm input[type="text"],
+#homeworkForm textarea,
+#homeworkForm button {
+  width: 100%;
+}
+
+/* Class form */
+#classForm input[type="text"],
+#classForm button {
+  width: 100%;
+}
+
+/* Add student */
+#addStudentClassSelector,
+#studentEmailInput,
+#addStudentBtn {
+  width: 100%;
+}
+
+/* ----------------------
+   Homework & Student lists
+------------------------*/
+ul#homeworkItems,
+ul#studentHomeworkList,
+#studentListContainer ul {
+  list-style-type: none;
+  padding: 0;
+  max-width: 400px;
+  margin-top: 0;
+}
+
+ul#homeworkItems li,
+ul#studentHomeworkList li,
+#studentListContainer ul li {
+  background: #22223b;
+  color: #f2f2f2;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  flex-wrap: wrap;
+}
+
+ul#homeworkItems li button,
+#studentListContainer ul li button {
+  width: auto;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+ul#homeworkItems li button {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+}
+
+#studentListContainer ul li button {
+  background-color: #bb2528;
+  color: white;
+  border: none;
+}
+
+ul#studentHomeworkList li input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+/* ----------------------
+   Responsive tweaks
+------------------------*/
 @media (max-width: 480px) {
-  #homeworkForm input[type="text"],
-  #homeworkForm textarea,
-  #homeworkForm button {
+  body {
+    margin: 5px;
+  }
+
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  textarea,
+  select,
+  button {
     font-size: 18px;
-    padding: 12px 14px;
+    padding: 14px 16px;
+    max-width: 100%;
+  }
+
+  ul#homeworkItems li,
+  ul#studentHomeworkList li,
+  #studentListContainer ul li {
+    font-size: 18px;
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  ul#homeworkItems li button,
+  #studentListContainer ul li button {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
   }
 }
+
 
 
 
