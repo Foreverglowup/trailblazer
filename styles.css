@@ -1,147 +1,94 @@
-/* Base styling */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@400;700&display=swap');
 
 body {
-  font-family: 'Merriweather', serif;
-  margin: 10px;
-  padding: 0;
-  background: #4a4e69; /* modern dark blue-gray */
-  color: #f2f2f2;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f9f9fb;
+  color: #333;
 }
 
 h1, h2, h3, h4 {
-  color: #f2f2f2;
-  font-weight: 700;
+  font-family: 'Merriweather', serif;
+  color: #222;
 }
 
-/* Inputs, selects and buttons styling */
+#auth-section,
+#teacherDashboard,
+#studentDashboard {
+  background: #fff;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
 input[type="email"],
 input[type="password"],
 input[type="text"],
 select,
-textarea,
-button {
-  font-family: 'Merriweather', serif;
-  font-size: 16px;
+textarea {
+  font-size: 15px;
   width: 100%;
   max-width: 400px;
-  box-sizing: border-box;
   padding: 10px 12px;
   margin: 8px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
-  vertical-align: middle;
-  display: inline-block;
-  font-weight: 400;
+  transition: all 0.2s ease;
 }
 
-/* Fixed heights for inputs and selects for alignment */
-input[type="email"],
-input[type="password"],
-input[type="text"],
-select {
-  height: 40px;
-  line-height: normal;
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #5A3E85;
+  box-shadow: 0 0 0 3px rgba(90,62,133,0.15);
+  outline: none;
 }
 
-/* Textarea styling with fixed height */
 textarea {
   height: 80px;
   resize: vertical;
   line-height: 1.4;
-  vertical-align: top; /* aligns properly with other inputs */
 }
 
-/* Button styling */
 button {
-  background-color: #9a8c98; /* muted mauve */
-  color: #f2f2f2;
+  background-color: #5A3E85;
+  color: #fff;
   border: none;
   cursor: pointer;
-  font-weight: 700;
-  transition: background-color 0.3s ease;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 button:hover {
-  background-color: #c9ada7;
-}
-
-/* Homework list styling */
-ul#homeworkItems,
-ul#studentHomeworkList {
-  list-style-type: none;
-  padding: 0;
-  max-width: 400px;
-  margin-top: 0;
+  background-color: #4b3571;
+  transform: translateY(-1px);
 }
 
 ul#homeworkItems li,
 ul#studentHomeworkList li {
-  background: #22223b;
+  background: #f4f2f8;
+  color: #333;
   padding: 10px 12px;
   margin-bottom: 10px;
   border-radius: 6px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  font-size: 16px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.05);
   display: flex;
-  align-items: center; /* vertical center */
   justify-content: space-between;
-  font-family: 'Merriweather', serif;
 }
 
-/* Delete button in homework list */
 ul#homeworkItems li button {
-  width: auto;
-  padding: 5px 10px;
-  font-size: 14px;
   background-color: #bb2528;
+  padding: 6px 10px;
   border-radius: 4px;
-  margin-left: 10px;
-  font-weight: 700;
-  color: white;
 }
 
-/* Checkbox for student homework */
-ul#studentHomeworkList li input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  cursor: pointer;
-}
-
-/* Responsive tweaks */
-@media (max-width: 480px) {
-  body {
-    margin: 5px;
-  }
-
-  input[type="email"],
-  input[type="password"],
-  input[type="text"],
-  textarea,
-  select,
-  button {
-    max-width: 100%;
-    font-size: 18px;
-    padding: 14px 18px;
-  }
-
-  ul#homeworkItems li,
-  ul#studentHomeworkList li {
-    font-size: 18px;
-    padding: 14px 16px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  ul#homeworkItems li button {
-    margin-left: 0;
-    margin-top: 8px;
-    width: 100%;
-  }
-}
 #studentListContainer h4,
 #studentListContainer p,
 #studentListContainer li {
-  color: #22223b; /* Dark grey text for contrast */
+  color: #333;
 }
+
