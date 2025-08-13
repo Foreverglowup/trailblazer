@@ -18,7 +18,7 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// UI Elements
+// --- UI Elements ---
 const authSection = document.getElementById("auth-section");
 const dashboard = document.getElementById("dashboard");
 const userEmailSpan = document.getElementById("userEmail");
@@ -36,44 +36,36 @@ const studentEmailInput = document.getElementById("studentEmailInput");
 const addStudentClassSelector = document.getElementById("addStudentClassSelector");
 const studentListContainer = document.getElementById("studentListContainer");
 
-// Store unsubscribe functions to detach listeners on logout
+// --- Unsubscribe listeners ---
 let unsubscribeHomeworkListener = null;
 let unsubscribeClassListener = null;
 let unsubscribeStudentClassListener = null;
 
-// SIGN UP
+// --- SIGN UP ---
 document.getElementById("signupBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const role = document.getElementById("role").value;
 
-  if (!email || !password) {
-    alert("Please enter email and password.");
-    return;
-  }
+  if (!email || !password) return alert("Please enter email and password.");
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Save user role and email in Firestore
+    // Save role in Firestore
     await setDoc(doc(db, "users", user.uid), { email, role });
-
     alert(`Signed up as ${role}!`);
   } catch (error) {
     alert(error.message);
   }
 });
 
-// LOG IN
+// --- LOG IN ---
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-
-  if (!email || !password) {
-    alert("Please enter email and password.");
-    return;
-  }
+  if (!email || !password) return alert("Enter email and password.");
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -82,143 +74,15 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   }
 });
 
-// LOG OUT
+// --- LOG OUT ---
 logoutBtn.addEventListener("click", async () => {
   if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
   if (unsubscribeClassListener) unsubscribeClassListener();
   if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
-
   await signOut(auth);
 });
 
-// REAL-TIME LISTENER: Teacher homework
-function listenToTeacherHomework(uid) {
-  if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
-
-  const q = query(collection(db, "homeworks"), where("assignedBy", "==", uid));
-  unsubscribeHomeworkListener = onSnapshot(q, (querySnapshot) => {
-    homeworkItems.innerHTML = "";
-
-    if (querySnapshot.empty) {
-      homeworkItems.textContent = "No homework assigned yet";
-      return;
-    }
-
-    querySnapshot.forEach((hwDoc) => {
-      const hw = hwDoc.data();
-      const li = document.createElement("li");
-      li.textContent = `${hw.title} – ${hw.description} `;
-
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "Delete";
-      delBtn.style.marginLeft = "10px";
-      delBtn.style.backgroundColor = "#d32f2f";
-      delBtn.style.color = "white";
-      delBtn.style.border = "none";
-      delBtn.style.padding = "4px 8px";
-      delBtn.style.cursor = "pointer";
-      delBtn.style.borderRadius = "4px";
-      delBtn.style.fontWeight = "600";
-
-      delBtn.addEventListener("click", async () => {
-        try {
-          await deleteDoc(doc(db, "homeworks", hwDoc.id));
-          alert("Homework deleted!");
-        } catch (error) {
-          alert("Error deleting homework: " + error.message);
-        }
-      });
-
-      li.appendChild(delBtn);
-      homeworkItems.appendChild(li);
-    });
-  });
-}
-
-// REAL-TIME LISTENER: Student homework (for classes student belongs to)
-function listenToStudentHomework(uid) {
-  if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
-  if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
-
-  const classesRef = collection(db, "classes");
-
-  // Listen to classes and find those that contain this student
-  unsubscribeStudentClassListener = onSnapshot(classesRef, async (classSnapshot) => {
-    const studentClasses = [];
-
-    const classDocs = classSnapshot.docs;
-
-    // Gather promises to check student membership in each class
-    const checkPromises = classDocs.map(async (classDoc) => {
-      const studentRef = doc(db, "classes", classDoc.id, "students", uid);
-      const studentSnap = await getDoc(studentRef);
-      if (studentSnap.exists()) {
-        studentClasses.push(classDoc.id);
-      }
-    });
-
-    await Promise.all(checkPromises);
-
-    if (studentClasses.length === 0) {
-      studentHomeworkList.textContent = "You are not in any class.";
-      return;
-    }
-
-    // Listen to homeworks realtime, filter for classes student belongs to
-    if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
-
-    const hwRef = collection(db, "homeworks");
-    unsubscribeHomeworkListener = onSnapshot(hwRef, (hwSnapshot) => {
-      studentHomeworkList.innerHTML = "";
-
-      let hasHw = false;
-
-      hwSnapshot.forEach((hwDoc) => {
-        const hw = hwDoc.data();
-        if (studentClasses.includes(hw.classId)) {
-          const li = document.createElement("li");
-          li.textContent = `${hw.title} – ${hw.description}`;
-          studentHomeworkList.appendChild(li);
-          hasHw = true;
-        }
-      });
-
-      if (!hasHw) {
-        studentHomeworkList.textContent = "No homework found for your classes.";
-      }
-    });
-  });
-}
-
-// REAL-TIME LISTENER: Classes for teacher (populate dropdowns)
-function listenToClassesForTeacher(uid) {
-  if (unsubscribeClassListener) unsubscribeClassListener();
-
-  const q = query(collection(db, "classes"), where("createdBy", "==", uid));
-  unsubscribeClassListener = onSnapshot(q, (querySnapshot) => {
-    classSelector.innerHTML = "";
-    addStudentClassSelector.innerHTML = "";
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      const option1 = document.createElement("option");
-      option1.value = docSnap.id;
-      option1.textContent = data.name;
-      classSelector.appendChild(option1);
-
-      const option2 = document.createElement("option");
-      option2.value = docSnap.id;
-      option2.textContent = data.name;
-      addStudentClassSelector.appendChild(option2);
-    });
-
-    // Load students for the first class automatically when classes change
-    if (classSelector.value) loadStudentsInClass(classSelector.value);
-  });
-}
-
-// AUTH STATE CHANGE
+// --- AUTH STATE ---
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     authSection.style.display = "none";
@@ -231,6 +95,7 @@ onAuthStateChanged(auth, async (user) => {
 
     if (docSnap.exists()) {
       const role = docSnap.data().role;
+
       if (role === "teacher") {
         teacherDashboard.style.display = "block";
         studentDashboard.style.display = "none";
@@ -245,55 +110,151 @@ onAuthStateChanged(auth, async (user) => {
       alert("User role not found.");
     }
   } else {
+    // Logged out
     authSection.style.display = "block";
     dashboard.style.display = "none";
     teacherDashboard.style.display = "none";
     studentDashboard.style.display = "none";
     logoutBtn.style.display = "none";
 
-    // Detach listeners on logout
     if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
     if (unsubscribeClassListener) unsubscribeClassListener();
     if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
   }
 });
 
-// ADD HOMEWORK FORM SUBMISSION
+// --- LISTENERS ---
+
+// Teacher homework
+function listenToTeacherHomework(uid) {
+  if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
+  const q = query(collection(db, "homeworks"), where("assignedBy", "==", uid));
+  unsubscribeHomeworkListener = onSnapshot(q, (snap) => {
+    homeworkItems.innerHTML = "";
+    if (snap.empty) return (homeworkItems.textContent = "No homework assigned yet.");
+
+    snap.forEach((hwDoc) => {
+      const hw = hwDoc.data();
+      const li = document.createElement("li");
+      li.textContent = `${hw.title} – ${hw.description}`;
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete";
+      delBtn.addEventListener("click", async () => {
+        try {
+          await deleteDoc(doc(db, "homeworks", hwDoc.id));
+          alert("Homework deleted!");
+        } catch (err) {
+          alert("Error deleting homework: " + err.message);
+        }
+      });
+
+      li.appendChild(delBtn);
+      homeworkItems.appendChild(li);
+    });
+  });
+}
+
+// Student homework
+function listenToStudentHomework(uid) {
+  if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
+  if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
+
+  const classesRef = collection(db, "classes");
+
+  unsubscribeStudentClassListener = onSnapshot(classesRef, async (classSnap) => {
+    const studentClasses = [];
+
+    const promises = classSnap.docs.map(async (cDoc) => {
+      const studentRef = doc(db, "classes", cDoc.id, "students", uid);
+      const studentSnap = await getDoc(studentRef);
+      if (studentSnap.exists()) studentClasses.push(cDoc.id);
+    });
+
+    await Promise.all(promises);
+
+    if (studentClasses.length === 0) {
+      studentHomeworkList.textContent = "You are not in any class.";
+      return;
+    }
+
+    // Listen to homeworks for student classes
+    if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
+    const hwRef = collection(db, "homeworks");
+    unsubscribeHomeworkListener = onSnapshot(hwRef, (hwSnap) => {
+      studentHomeworkList.innerHTML = "";
+      let hasHw = false;
+      hwSnap.forEach((hwDoc) => {
+        const hw = hwDoc.data();
+        if (studentClasses.includes(hw.classId)) {
+          const li = document.createElement("li");
+          li.textContent = `${hw.title} – ${hw.description}`;
+          studentHomeworkList.appendChild(li);
+          hasHw = true;
+        }
+      });
+      if (!hasHw) studentHomeworkList.textContent = "No homework found for your classes.";
+    });
+  });
+}
+
+// Classes for teacher
+function listenToClassesForTeacher(uid) {
+  if (unsubscribeClassListener) unsubscribeClassListener();
+  const q = query(collection(db, "classes"), where("createdBy", "==", uid));
+  unsubscribeClassListener = onSnapshot(q, (snap) => {
+    classSelector.innerHTML = "";
+    addStudentClassSelector.innerHTML = "";
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const option1 = document.createElement("option");
+      option1.value = docSnap.id;
+      option1.textContent = data.name;
+      classSelector.appendChild(option1);
+
+      const option2 = document.createElement("option");
+      option2.value = docSnap.id;
+      option2.textContent = data.name;
+      addStudentClassSelector.appendChild(option2);
+    });
+
+    if (classSelector.value) loadStudentsInClass(classSelector.value);
+  });
+}
+
+// --- FORM SUBMISSIONS ---
+
+// Add homework
 if (homeworkForm) {
   homeworkForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = document.getElementById("homeworkTitle").value.trim();
-    const description = document.getElementById("homeworkDescription").value.trim();
-    if (!title || !description) {
-      alert("Enter both title and description.");
-      return;
-    }
+    const desc = document.getElementById("homeworkDescription").value.trim();
+    if (!title || !desc) return alert("Enter both title and description.");
 
     try {
       await addDoc(collection(db, "homeworks"), {
         title,
-        description,
+        description: desc,
         assignedBy: auth.currentUser.uid,
         assignedAt: new Date(),
         classId: classSelector.value,
       });
       alert("Homework added!");
       homeworkForm.reset();
-    } catch (error) {
-      alert("Error adding homework: " + error.message);
+    } catch (err) {
+      alert("Error adding homework: " + err.message);
     }
   });
 }
 
-// CREATE CLASS FORM SUBMISSION
+// Create class
 if (classForm) {
   classForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = classNameInput.value.trim();
-    if (!name) {
-      alert("Enter a class name.");
-      return;
-    }
+    if (!name) return alert("Enter a class name.");
 
     try {
       await addDoc(collection(db, "classes"), {
@@ -302,111 +263,71 @@ if (classForm) {
       });
       alert("Class created!");
       classForm.reset();
-    } catch (error) {
-      alert("Error creating class: " + error.message);
+    } catch (err) {
+      alert("Error creating class: " + err.message);
     }
   });
 }
 
-// ADD STUDENT TO CLASS BUTTON
+// Add student to class
 if (addStudentBtn) {
   addStudentBtn.addEventListener("click", async () => {
     const email = studentEmailInput.value.trim();
     const classId = addStudentClassSelector.value;
-
-    if (!email || !classId) {
-      alert("Fill both student email and class selection.");
-      return;
-    }
+    if (!email || !classId) return alert("Fill both student email and class selection.");
 
     try {
-      // Find user with this email
       const usersQuery = query(collection(db, "users"), where("email", "==", email));
-      const userSnapshot = await getDocs(usersQuery);
-      if (userSnapshot.empty) {
-        alert("Student not found.");
-        return;
-      }
+      const userSnap = await getDocs(usersQuery);
+      if (userSnap.empty) return alert("Student not found.");
 
-      const studentDoc = userSnapshot.docs[0];
-      const studentId = studentDoc.id;
-
-      // Add student to class subcollection
-      await setDoc(doc(db, "classes", classId, "students", studentId), {
+      const studentDoc = userSnap.docs[0];
+      await setDoc(doc(db, "classes", classId, "students", studentDoc.id), {
         email,
         addedAt: new Date(),
       });
-
       alert("Student added to class!");
       studentEmailInput.value = "";
-
-      // Reload student list
       loadStudentsInClass(classId);
-    } catch (error) {
-      alert("Error adding student: " + error.message);
+    } catch (err) {
+      alert("Error adding student: " + err.message);
     }
   });
 }
 
-// Load students in selected class
+// --- Load students in class ---
 async function loadStudentsInClass(classId) {
-  studentListContainer.innerHTML = `<h4>Students in Selected Class</h4>`;
-  if (!classId) {
-    studentListContainer.innerHTML += "<p>No class selected.</p>";
-    return;
-  }
+  studentListContainer.innerHTML = "<h4>Students in Selected Class</h4>";
+  if (!classId) return (studentListContainer.innerHTML += "<p>No class selected.</p>");
 
   const studentsCol = collection(db, "classes", classId, "students");
-  const studentsSnapshot = await getDocs(studentsCol);
+  const studentsSnap = await getDocs(studentsCol);
 
-  if (studentsSnapshot.empty) {
-    studentListContainer.innerHTML += "<p>No students added yet.</p>";
-    return;
-  }
+  if (studentsSnap.empty) return (studentListContainer.innerHTML += "<p>No students added yet.</p>");
 
   const ul = document.createElement("ul");
-  ul.style.maxWidth = "400px";
-  ul.style.padding = "0";
   ul.style.listStyle = "none";
+  ul.style.padding = "0";
+  ul.style.maxWidth = "400px";
 
-  studentsSnapshot.forEach((studentDoc) => {
+  studentsSnap.forEach((studentDoc) => {
     const student = studentDoc.data();
     const li = document.createElement("li");
+    li.textContent = student.email;
     li.style.background = "white";
     li.style.padding = "10px 12px";
     li.style.marginBottom = "10px";
     li.style.borderRadius = "6px";
-    li.style.boxShadow = "0 0 5px rgba(0,0,0,0.08)";
     li.style.display = "flex";
     li.style.justifyContent = "space-between";
     li.style.alignItems = "center";
-    li.style.fontFamily = "'Poppins', Arial, sans-serif";
 
-    li.textContent = student.email;
-
-    // Remove button
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "Remove";
-    removeBtn.style.backgroundColor = "#d32f2f";
-    removeBtn.style.color = "white";
-    removeBtn.style.border = "none";
-    removeBtn.style.padding = "5px 10px";
-    removeBtn.style.borderRadius = "4px";
-    removeBtn.style.cursor = "pointer";
-    removeBtn.style.fontWeight = "600";
-
     removeBtn.addEventListener("click", async () => {
-      const confirmRemove = confirm(`Remove student ${student.email} from this class?`);
-      if (!confirmRemove) return;
-
-      try {
-        await deleteDoc(doc(db, "classes", classId, "students", studentDoc.id));
-        alert(`Removed ${student.email} from class.`);
-        // Reload student list after removal
-        await loadStudentsInClass(classId);
-      } catch (err) {
-        alert("Error removing student: " + err.message);
-      }
+      if (!confirm(`Remove student ${student.email}?`)) return;
+      await deleteDoc(doc(db, "classes", classId, "students", studentDoc.id));
+      loadStudentsInClass(classId);
     });
 
     li.appendChild(removeBtn);
@@ -416,11 +337,12 @@ async function loadStudentsInClass(classId) {
   studentListContainer.appendChild(ul);
 }
 
-// Reload students list when the teacher selects a different class
+// Reload students when teacher selects class
 classSelector.addEventListener("change", () => {
   const selectedClassId = classSelector.value;
   loadStudentsInClass(selectedClassId);
 });
+
 
 
 
