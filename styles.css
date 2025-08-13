@@ -1,94 +1,146 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@400;700&display=swap');
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
 
+/* Base Styling */
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Merriweather', serif;
   margin: 0;
   padding: 20px;
-  background: #f9f9fb;
-  color: #333;
+  background: #4a4e69; /* deep purple/blue */
+  color: #f2f2f2;
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Merriweather', serif;
-  color: #222;
+  font-weight: 700;
+  margin-bottom: 10px;
 }
 
-#auth-section,
-#teacherDashboard,
-#studentDashboard {
-  background: #fff;
+/* Dashboard Wrapper */
+#dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto;
   padding: 20px;
-  margin-top: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+/* Sections: Teacher & Student Dashboard */
+#teacherDashboard, #studentDashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #22223b;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Input, Select, Textarea */
+input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="text"],
 select,
 textarea {
-  font-size: 15px;
   width: 100%;
   max-width: 400px;
   padding: 10px 12px;
-  margin: 8px 0;
-  border-radius: 6px;
+  margin-bottom: 12px;
+  border-radius: 8px;
   border: 1px solid #ccc;
-  transition: all 0.2s ease;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: #5A3E85;
-  box-shadow: 0 0 0 3px rgba(90,62,133,0.15);
-  outline: none;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
 textarea {
-  height: 80px;
   resize: vertical;
-  line-height: 1.4;
+  min-height: 80px;
 }
 
+/* Buttons */
 button {
-  background-color: #5A3E85;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
   padding: 10px 16px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+  background-color: #9a8c98; /* muted mauve */
+  color: #f2f2f2;
 }
 
 button:hover {
-  background-color: #4b3571;
-  transform: translateY(-1px);
+  background-color: #c9ada7;
+}
+
+/* Homework & Student Lists */
+ul#homeworkItems,
+ul#studentHomeworkList,
+#studentListContainer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
 }
 
 ul#homeworkItems li,
-ul#studentHomeworkList li {
-  background: #f4f2f8;
-  color: #333;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.05);
+ul#studentHomeworkList li,
+#studentListContainer ul li {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* text left, buttons right */
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background: #373459;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-ul#homeworkItems li button {
+ul#homeworkItems li button,
+#studentListContainer ul li button {
   background-color: #bb2528;
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
 }
 
-#studentListContainer h4,
-#studentListContainer p,
-#studentListContainer li {
-  color: #333;
+ul#studentHomeworkList li input[type="checkbox"] {
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
 }
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  #dashboard {
+    padding: 10px;
+  }
+
+  input, select, textarea, button {
+    max-width: 100%;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  ul#homeworkItems li,
+  ul#studentHomeworkList li,
+  #studentListContainer ul li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  ul#homeworkItems li button,
+  #studentListContainer ul li button {
+    margin-top: 8px;
+    width: 100%;
+  }
+}
+
 
