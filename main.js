@@ -45,18 +45,15 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const role = document.getElementById("role").value;
-
   if (!email || !password) return alert("Please enter email and password.");
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Save role in Firestore
     await setDoc(doc(db, "users", user.uid), { email, role });
     alert(`Signed up as ${role}!`);
-  } catch (error) {
-    alert(error.message);
+  } catch (err) {
+    alert(err.message);
   }
 });
 
@@ -65,11 +62,10 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   if (!email || !password) return alert("Enter email and password.");
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
-  } catch (error) {
-    alert(error.message);
+  } catch (err) {
+    alert(err.message);
   }
 });
 
@@ -79,155 +75,158 @@ logoutBtn.addEventListener("click", async () => {
   if (unsubscribeClassListener) unsubscribeClassListener();
   if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
   await signOut(auth);
+
+  // Reset UI
+  dashboard.style.display = "none";
+  authSection.style.display = "block";
 });
 
 // --- AUTH STATE ---
 onAuthStateChanged(auth, async (user) => {
+  // Reset dashboards first
+  teacherDashboard.style.display = "none";
+  studentDashboard.style.display = "none";
+  dashboard.style.display = "none";
+  logoutBtn.style.display = "none";
+
+  if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
+  if (unsubscribeClassListener) unsubscribeClassListener();
+  if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
+
   if (user) {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      alert("User role not found.");
+      return;
+    }
+
+    const role = docSnap.data().role;
     authSection.style.display = "none";
     dashboard.style.display = "block";
     logoutBtn.style.display = "inline-block";
     userEmailSpan.textContent = user.email;
 
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
+    if (role === "teacher") {
+      teacherDashboard.style.display = "block";
+      activateTabsForTeacher();
+      listenToTeacherHomework(user.uid);
+      listenToClassesForTeacher(user.uid);
 
-    if (docSnap.exists()) {
-      const role = docSnap.data().role;
-
-      if (role === "teacher") {
-        teacherDashboard.style.display = "block";
-        studentDashboard.style.display = "none";
-        listenToTeacherHomework(user.uid);
-        listenToClassesForTeacher(user.uid);
-      } else {
-        teacherDashboard.style.display = "none";
-        studentDashboard.style.display = "block";
-        listenToStudentHomework(user.uid);
-      }
-    } else {
-      alert("User role not found.");
+    } else if (role === "student") {
+      studentDashboard.style.display = "block";
+      listenToStudentHomework(user.uid, studentHomeworkList);
     }
-  } else {
-    // Logged out
-    authSection.style.display = "block";
-    dashboard.style.display = "none";
-    teacherDashboard.style.display = "none";
-    studentDashboard.style.display = "none";
-    logoutBtn.style.display = "none";
-
-    if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
-    if (unsubscribeClassListener) unsubscribeClassListener();
-    if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
   }
 });
 
-// --- LISTENERS ---
-// Teacher homework
+// --- Tabs for Teacher ---
+function activateTabsForTeacher() {
+  const tabButtons = teacherDashboard.querySelectorAll(".tab-btn");
+  const tabContents = teacherDashboard.querySelectorAll(".tab-content");
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;
+      tabButtons.forEach(b => b.classList.remove("active"));
+      tabContents.forEach(tc => tc.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(target).classList.add("active");
+    });
+  });
+  if (tabButtons.length > 0) tabButtons[0].click();
+}
+
+// --- Teacher: Homework ---
 function listenToTeacherHomework(uid) {
   if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
   const q = query(collection(db, "homeworks"), where("assignedBy", "==", uid));
-  unsubscribeHomeworkListener = onSnapshot(q, (snap) => {
+  unsubscribeHomeworkListener = onSnapshot(q, snap => {
     homeworkItems.innerHTML = "";
-    if (snap.empty) return (homeworkItems.textContent = "No homework assigned yet.");
-
-    snap.forEach((hwDoc) => {
+    if (snap.empty) return homeworkItems.textContent = "No homework assigned yet.";
+    snap.forEach(hwDoc => {
       const hw = hwDoc.data();
       const li = document.createElement("li");
       li.textContent = `${hw.title} – ${hw.description}`;
-
       const delBtn = document.createElement("button");
       delBtn.textContent = "Delete";
       delBtn.addEventListener("click", async () => {
         if (!confirm(`Delete homework "${hw.title}"?`)) return;
         await deleteDoc(doc(db, "homeworks", hwDoc.id));
       });
-
       li.appendChild(delBtn);
       homeworkItems.appendChild(li);
     });
   });
 }
 
-// Student homework
-function listenToStudentHomework(uid) {
+// --- Student: Homework ---
+function listenToStudentHomework(uid, targetElement) {
   if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
   if (unsubscribeStudentClassListener) unsubscribeStudentClassListener();
 
   const classesRef = collection(db, "classes");
-
   unsubscribeStudentClassListener = onSnapshot(classesRef, async (classSnap) => {
     const studentClasses = [];
-
-    const promises = classSnap.docs.map(async (cDoc) => {
+    await Promise.all(classSnap.docs.map(async cDoc => {
       const studentRef = doc(db, "classes", cDoc.id, "students", uid);
       const studentSnap = await getDoc(studentRef);
       if (studentSnap.exists()) studentClasses.push(cDoc.id);
-    });
-
-    await Promise.all(promises);
+    }));
 
     if (studentClasses.length === 0) {
-      studentHomeworkList.textContent = "You are not in any class.";
+      targetElement.textContent = "You are not in any class.";
       return;
     }
 
-    // Listen to homeworks for student classes
     if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
     const hwRef = collection(db, "homeworks");
-    unsubscribeHomeworkListener = onSnapshot(hwRef, (hwSnap) => {
-      studentHomeworkList.innerHTML = "";
+    unsubscribeHomeworkListener = onSnapshot(hwRef, hwSnap => {
+      targetElement.innerHTML = "";
       let hasHw = false;
-      hwSnap.forEach((hwDoc) => {
+      hwSnap.forEach(hwDoc => {
         const hw = hwDoc.data();
         if (studentClasses.includes(hw.classId)) {
           const li = document.createElement("li");
           li.textContent = `${hw.title} – ${hw.description}`;
-          studentHomeworkList.appendChild(li);
+          targetElement.appendChild(li);
           hasHw = true;
         }
       });
-      if (!hasHw) studentHomeworkList.textContent = "No homework found for your classes.";
+      if (!hasHw) targetElement.textContent = "No homework found for your classes.";
     });
   });
 }
 
-// Classes for teacher
+// --- Teacher: Classes ---
 function listenToClassesForTeacher(uid) {
   if (unsubscribeClassListener) unsubscribeClassListener();
   const q = query(collection(db, "classes"), where("createdBy", "==", uid));
-  unsubscribeClassListener = onSnapshot(q, (snap) => {
+  unsubscribeClassListener = onSnapshot(q, snap => {
     classesTableBody.innerHTML = "";
     addStudentClassSelector.innerHTML = "";
-
-    snap.forEach((docSnap) => {
+    snap.forEach(docSnap => {
       const data = docSnap.data();
       const row = document.createElement("tr");
 
-      // Class Name
       const tdName = document.createElement("td");
       tdName.textContent = data.name;
       row.appendChild(tdName);
 
-      // Students
       const tdStudents = document.createElement("td");
       tdStudents.textContent = "Loading...";
       loadStudentsInClassTable(docSnap.id, tdStudents);
       row.appendChild(tdStudents);
 
-      // Actions
       const tdActions = document.createElement("td");
       const delBtn = document.createElement("button");
       delBtn.textContent = "Delete";
       delBtn.addEventListener("click", async () => {
         if (!confirm(`Delete class "${data.name}"?`)) return;
-        // Delete all students in subcollection first
         const studentsCol = collection(db, "classes", docSnap.id, "students");
         const studentDocs = await getDocs(studentsCol);
         for (const sDoc of studentDocs.docs) {
           await deleteDoc(doc(db, "classes", docSnap.id, "students", sDoc.id));
         }
-        // Delete class
         await deleteDoc(doc(db, "classes", docSnap.id));
       });
       tdActions.appendChild(delBtn);
@@ -235,7 +234,6 @@ function listenToClassesForTeacher(uid) {
 
       classesTableBody.appendChild(row);
 
-      // Populate Add Student select
       const option = document.createElement("option");
       option.value = docSnap.id;
       option.textContent = data.name;
@@ -244,33 +242,28 @@ function listenToClassesForTeacher(uid) {
   });
 }
 
-// Load students into class table
 async function loadStudentsInClassTable(classId, tdElement) {
   const studentsCol = collection(db, "classes", classId, "students");
   const studentsSnap = await getDocs(studentsCol);
-  if (studentsSnap.empty) {
-    tdElement.textContent = "No students";
-    return;
-  }
-  tdElement.textContent = studentsSnap.docs.map(s => s.data().email).join(", ");
+  tdElement.textContent = studentsSnap.empty
+    ? "No students"
+    : studentsSnap.docs.map(s => s.data().email).join(", ");
 }
 
 // --- FORM SUBMISSIONS ---
-// Add homework
 if (homeworkForm) {
-  homeworkForm.addEventListener("submit", async (e) => {
+  homeworkForm.addEventListener("submit", async e => {
     e.preventDefault();
     const title = document.getElementById("homeworkTitle").value.trim();
     const desc = document.getElementById("homeworkDescription").value.trim();
     if (!title || !desc) return alert("Enter both title and description.");
-
     try {
       await addDoc(collection(db, "homeworks"), {
         title,
         description: desc,
         assignedBy: auth.currentUser.uid,
         assignedAt: new Date(),
-        classId: addStudentClassSelector.value || "", // optional
+        classId: addStudentClassSelector.value || "",
       });
       homeworkForm.reset();
       alert("Homework added!");
@@ -280,13 +273,11 @@ if (homeworkForm) {
   });
 }
 
-// Create class
 if (classForm) {
-  classForm.addEventListener("submit", async (e) => {
+  classForm.addEventListener("submit", async e => {
     e.preventDefault();
     const name = classNameInput.value.trim();
     if (!name) return alert("Enter a class name.");
-
     try {
       await addDoc(collection(db, "classes"), {
         name,
@@ -301,18 +292,15 @@ if (classForm) {
   });
 }
 
-// Add student
 if (addStudentBtn) {
   addStudentBtn.addEventListener("click", async () => {
     const email = studentEmailInput.value.trim();
     const classId = addStudentClassSelector.value;
     if (!email || !classId) return alert("Fill both student email and class selection.");
-
     try {
       const usersQuery = query(collection(db, "users"), where("email", "==", email));
       const userSnap = await getDocs(usersQuery);
       if (userSnap.empty) return alert("Student not found.");
-
       const studentDoc = userSnap.docs[0];
       await setDoc(doc(db, "classes", classId, "students", studentDoc.id), {
         email,
@@ -326,14 +314,3 @@ if (addStudentBtn) {
     }
   });
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -25,54 +25,57 @@
   <div id="dashboard" style="display:none;">
     <h2>Welcome, <span id="userEmail"></span></h2>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="homeworkTab">Homework</button>
-      <button class="tab-btn" data-tab="classesTab">Classes</button>
-      <button class="tab-btn" data-tab="addStudentTab">Add Student</button>
+    <!-- TEACHER DASHBOARD -->
+    <div id="teacherDashboard" style="display:none;">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="homeworkTab">Homework</button>
+        <button class="tab-btn" data-tab="classesTab">Classes</button>
+        <button class="tab-btn" data-tab="addStudentTab">Add Student</button>
+      </div>
+
+      <!-- Homework Tab -->
+      <div id="homeworkTab" class="tab-content active">
+        <h3>Teacher Dashboard - Homework</h3>
+        <form id="homeworkForm">
+          <input type="text" id="homeworkTitle" placeholder="Homework title" required />
+          <textarea id="homeworkDescription" placeholder="Homework description" required></textarea>
+          <button type="submit">Add Homework</button>
+        </form>
+        <h4>Assigned Homework</h4>
+        <ul id="homeworkItems"></ul>
+      </div>
+
+      <!-- Classes Tab -->
+      <div id="classesTab" class="tab-content">
+        <h3>Teacher Dashboard - Classes</h3>
+        <table id="classesTable">
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Students</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <h4>Create New Class</h4>
+        <form id="classForm">
+          <input type="text" id="className" placeholder="Class name" required />
+          <button type="submit">Create Class</button>
+        </form>
+      </div>
+
+      <!-- Add Student Tab -->
+      <div id="addStudentTab" class="tab-content">
+        <h3>Teacher Dashboard - Add Student</h3>
+        <select id="addStudentClassSelector"></select>
+        <input type="email" id="studentEmailInput" placeholder="Student Email" />
+        <button id="addStudentBtn">Add Student</button>
+      </div>
     </div>
 
-    <!-- Homework Tab -->
-    <div id="homeworkTab" class="tab-content active">
-      <h3>Teacher Dashboard - Homework</h3>
-      <form id="homeworkForm">
-        <input type="text" id="homeworkTitle" placeholder="Homework title" required />
-        <textarea id="homeworkDescription" placeholder="Homework description" required></textarea>
-        <button type="submit">Add Homework</button>
-      </form>
-      <h4>Assigned Homework</h4>
-      <ul id="homeworkItems"></ul>
-    </div>
-
-    <!-- Classes Tab -->
-    <div id="classesTab" class="tab-content">
-      <h3>Teacher Dashboard - Classes</h3>
-      <table id="classesTable">
-        <thead>
-          <tr>
-            <th>Class Name</th>
-            <th>Students</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <h4>Create New Class</h4>
-      <form id="classForm">
-        <input type="text" id="className" placeholder="Class name" required />
-        <button type="submit">Create Class</button>
-      </form>
-    </div>
-
-    <!-- Add Student Tab -->
-    <div id="addStudentTab" class="tab-content">
-      <h3>Teacher Dashboard - Add Student</h3>
-      <select id="addStudentClassSelector"></select>
-      <input type="email" id="studentEmailInput" placeholder="Student Email" />
-      <button id="addStudentBtn">Add Student</button>
-    </div>
-
-    <!-- Student Dashboard -->
+    <!-- STUDENT DASHBOARD -->
     <div id="studentDashboard" style="display:none;">
       <h3>Student Dashboard</h3>
       <p>Your assigned homework:</p>
@@ -86,10 +89,11 @@
   <!-- Scripts -->
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="main.js"></script>
+
   <script>
-    // Tab switching
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    // Tab switching for teacher dashboard only
+    const tabBtns = document.querySelectorAll('#teacherDashboard .tab-btn');
+    const tabContents = document.querySelectorAll('#teacherDashboard .tab-content');
 
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -103,6 +107,10 @@
   </script>
 </body>
 </html>
+
+
+
+
 
 
 
