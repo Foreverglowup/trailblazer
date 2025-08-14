@@ -33,6 +33,7 @@ const classNameInput = document.getElementById("className");
 const addStudentBtn = document.getElementById("addStudentBtn");
 const studentEmailInput = document.getElementById("studentEmailInput");
 const addStudentClassSelector = document.getElementById("addStudentClassSelector");
+const homeworkClassSelector = document.getElementById("homeworkClassSelector"); // NEW selector
 const classesTableBody = document.querySelector("#classesTable tbody");
 
 // --- Unsubscribe listeners ---
@@ -204,6 +205,8 @@ function listenToClassesForTeacher(uid) {
   unsubscribeClassListener = onSnapshot(q, snap => {
     classesTableBody.innerHTML = "";
     addStudentClassSelector.innerHTML = "";
+    homeworkClassSelector.innerHTML = '<option value="">Select Class</option>';
+
     snap.forEach(docSnap => {
       const data = docSnap.data();
       const row = document.createElement("tr");
@@ -234,10 +237,17 @@ function listenToClassesForTeacher(uid) {
 
       classesTableBody.appendChild(row);
 
-      const option = document.createElement("option");
-      option.value = docSnap.id;
-      option.textContent = data.name;
-      addStudentClassSelector.appendChild(option);
+      // Populate Add Student selector
+      const option1 = document.createElement("option");
+      option1.value = docSnap.id;
+      option1.textContent = data.name;
+      addStudentClassSelector.appendChild(option1);
+
+      // Populate Homework selector
+      const option2 = document.createElement("option");
+      option2.value = docSnap.id;
+      option2.textContent = data.name;
+      homeworkClassSelector.appendChild(option2);
     });
   });
 }
@@ -251,19 +261,22 @@ async function loadStudentsInClassTable(classId, tdElement) {
 }
 
 // --- FORM SUBMISSIONS ---
+// Add homework
 if (homeworkForm) {
   homeworkForm.addEventListener("submit", async e => {
     e.preventDefault();
     const title = document.getElementById("homeworkTitle").value.trim();
     const desc = document.getElementById("homeworkDescription").value.trim();
-    if (!title || !desc) return alert("Enter both title and description.");
+    const classId = homeworkClassSelector.value;
+    if (!title || !desc || !classId) return alert("Enter title, description, and select a class.");
+
     try {
       await addDoc(collection(db, "homeworks"), {
         title,
         description: desc,
         assignedBy: auth.currentUser.uid,
         assignedAt: new Date(),
-        classId: addStudentClassSelector.value || "",
+        classId: classId,
       });
       homeworkForm.reset();
       alert("Homework added!");
@@ -273,6 +286,7 @@ if (homeworkForm) {
   });
 }
 
+// Create class
 if (classForm) {
   classForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -292,6 +306,7 @@ if (classForm) {
   });
 }
 
+// Add student
 if (addStudentBtn) {
   addStudentBtn.addEventListener("click", async () => {
     const email = studentEmailInput.value.trim();
@@ -314,3 +329,4 @@ if (addStudentBtn) {
     }
   });
 }
+
