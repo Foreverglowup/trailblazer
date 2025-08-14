@@ -30,11 +30,10 @@ const studentHomeworkList = document.getElementById("studentHomeworkList");
 const logoutBtn = document.getElementById("logoutBtn");
 const classForm = document.getElementById("classForm");
 const classNameInput = document.getElementById("className");
-const classSelector = document.getElementById("classSelector");
 const addStudentBtn = document.getElementById("addStudentBtn");
 const studentEmailInput = document.getElementById("studentEmailInput");
 const addStudentClassSelector = document.getElementById("addStudentClassSelector");
-const studentListContainer = document.getElementById("studentListContainer");
+const classesTableBody = document.querySelector("#classesTable tbody");
 
 // --- Unsubscribe listeners ---
 let unsubscribeHomeworkListener = null;
@@ -124,7 +123,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // --- LISTENERS ---
-
 // Teacher homework
 function listenToTeacherHomework(uid) {
   if (unsubscribeHomeworkListener) unsubscribeHomeworkListener();
@@ -141,12 +139,8 @@ function listenToTeacherHomework(uid) {
       const delBtn = document.createElement("button");
       delBtn.textContent = "Delete";
       delBtn.addEventListener("click", async () => {
-        try {
-          await deleteDoc(doc(db, "homeworks", hwDoc.id));
-          alert("Homework deleted!");
-        } catch (err) {
-          alert("Error deleting homework: " + err.message);
-        }
+        if (!confirm(`Delete homework "${hw.title}"?`)) return;
+        await deleteDoc(doc(db, "homeworks", hwDoc.id));
       });
 
       li.appendChild(delBtn);
@@ -203,28 +197,65 @@ function listenToClassesForTeacher(uid) {
   if (unsubscribeClassListener) unsubscribeClassListener();
   const q = query(collection(db, "classes"), where("createdBy", "==", uid));
   unsubscribeClassListener = onSnapshot(q, (snap) => {
-    classSelector.innerHTML = "";
+    classesTableBody.innerHTML = "";
     addStudentClassSelector.innerHTML = "";
 
     snap.forEach((docSnap) => {
       const data = docSnap.data();
-      const option1 = document.createElement("option");
-      option1.value = docSnap.id;
-      option1.textContent = data.name;
-      classSelector.appendChild(option1);
+      const row = document.createElement("tr");
 
-      const option2 = document.createElement("option");
-      option2.value = docSnap.id;
-      option2.textContent = data.name;
-      addStudentClassSelector.appendChild(option2);
+      // Class Name
+      const tdName = document.createElement("td");
+      tdName.textContent = data.name;
+      row.appendChild(tdName);
+
+      // Students
+      const tdStudents = document.createElement("td");
+      tdStudents.textContent = "Loading...";
+      loadStudentsInClassTable(docSnap.id, tdStudents);
+      row.appendChild(tdStudents);
+
+      // Actions
+      const tdActions = document.createElement("td");
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete";
+      delBtn.addEventListener("click", async () => {
+        if (!confirm(`Delete class "${data.name}"?`)) return;
+        // Delete all students in subcollection first
+        const studentsCol = collection(db, "classes", docSnap.id, "students");
+        const studentDocs = await getDocs(studentsCol);
+        for (const sDoc of studentDocs.docs) {
+          await deleteDoc(doc(db, "classes", docSnap.id, "students", sDoc.id));
+        }
+        // Delete class
+        await deleteDoc(doc(db, "classes", docSnap.id));
+      });
+      tdActions.appendChild(delBtn);
+      row.appendChild(tdActions);
+
+      classesTableBody.appendChild(row);
+
+      // Populate Add Student select
+      const option = document.createElement("option");
+      option.value = docSnap.id;
+      option.textContent = data.name;
+      addStudentClassSelector.appendChild(option);
     });
-
-    if (classSelector.value) loadStudentsInClass(classSelector.value);
   });
 }
 
-// --- FORM SUBMISSIONS ---
+// Load students into class table
+async function loadStudentsInClassTable(classId, tdElement) {
+  const studentsCol = collection(db, "classes", classId, "students");
+  const studentsSnap = await getDocs(studentsCol);
+  if (studentsSnap.empty) {
+    tdElement.textContent = "No students";
+    return;
+  }
+  tdElement.textContent = studentsSnap.docs.map(s => s.data().email).join(", ");
+}
 
+// --- FORM SUBMISSIONS ---
 // Add homework
 if (homeworkForm) {
   homeworkForm.addEventListener("submit", async (e) => {
@@ -239,10 +270,10 @@ if (homeworkForm) {
         description: desc,
         assignedBy: auth.currentUser.uid,
         assignedAt: new Date(),
-        classId: classSelector.value,
+        classId: addStudentClassSelector.value || "", // optional
       });
-      alert("Homework added!");
       homeworkForm.reset();
+      alert("Homework added!");
     } catch (err) {
       alert("Error adding homework: " + err.message);
     }
@@ -261,15 +292,16 @@ if (classForm) {
         name,
         createdBy: auth.currentUser.uid,
       });
-      alert("Class created!");
       classForm.reset();
+      alert("Class created!");
+      listenToClassesForTeacher(auth.currentUser.uid);
     } catch (err) {
       alert("Error creating class: " + err.message);
     }
   });
 }
 
-// Add student to class
+// Add student
 if (addStudentBtn) {
   addStudentBtn.addEventListener("click", async () => {
     const email = studentEmailInput.value.trim();
@@ -288,60 +320,19 @@ if (addStudentBtn) {
       });
       alert("Student added to class!");
       studentEmailInput.value = "";
-      loadStudentsInClass(classId);
+      listenToClassesForTeacher(auth.currentUser.uid);
     } catch (err) {
       alert("Error adding student: " + err.message);
     }
   });
 }
 
-// --- Load students in class ---
-async function loadStudentsInClass(classId) {
-  studentListContainer.innerHTML = "<h4>Students in Selected Class</h4>";
-  if (!classId) return (studentListContainer.innerHTML += "<p>No class selected.</p>");
 
-  const studentsCol = collection(db, "classes", classId, "students");
-  const studentsSnap = await getDocs(studentsCol);
 
-  if (studentsSnap.empty) return (studentListContainer.innerHTML += "<p>No students added yet.</p>");
 
-  const ul = document.createElement("ul");
-  ul.style.listStyle = "none";
-  ul.style.padding = "0";
-  ul.style.maxWidth = "400px";
 
-  studentsSnap.forEach((studentDoc) => {
-    const student = studentDoc.data();
-    const li = document.createElement("li");
-    li.textContent = student.email;
-    li.style.background = "white";
-    li.style.padding = "10px 12px";
-    li.style.marginBottom = "10px";
-    li.style.borderRadius = "6px";
-    li.style.display = "flex";
-    li.style.justifyContent = "space-between";
-    li.style.alignItems = "center";
 
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Remove";
-    removeBtn.addEventListener("click", async () => {
-      if (!confirm(`Remove student ${student.email}?`)) return;
-      await deleteDoc(doc(db, "classes", classId, "students", studentDoc.id));
-      loadStudentsInClass(classId);
-    });
 
-    li.appendChild(removeBtn);
-    ul.appendChild(li);
-  });
-
-  studentListContainer.appendChild(ul);
-}
-
-// Reload students when teacher selects class
-classSelector.addEventListener("change", () => {
-  const selectedClassId = classSelector.value;
-  loadStudentsInClass(selectedClassId);
-});
 
 
 

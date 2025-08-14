@@ -5,197 +5,207 @@
 
 body {
   font-family: 'Merriweather', serif;
-  margin: 10px;
-  padding: 0;
-  background: #4a4e69; /* dark blue-gray */
+  margin: 0;
+  padding: 20px;
+  background-color: #4a4e69; /* restored dark background */
   color: #f2f2f2;
 }
 
 h1, h2, h3, h4 {
   color: #f2f2f2;
   font-weight: 700;
-  margin-top: 12px;
-  margin-bottom: 6px;
+  margin: 10px 0 5px;
 }
 
-/* ----------------------
-   Inputs, selects, textarea
-------------------------*/
-input[type="email"],
-input[type="password"],
-input[type="text"],
-select,
-textarea {
+input, select, textarea, button {
   font-family: 'Merriweather', serif;
   font-size: 16px;
-  width: 100%;
-  max-width: 400px;
-  box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 8px 12px;
   margin: 6px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-weight: 400;
+  box-sizing: border-box;
 }
 
-input[type="email"],
-input[type="password"],
-input[type="text"],
-select {
-  height: 40px;
+input, select, textarea {
+  width: 100%;
+  max-width: 400px;
 }
 
-textarea {
+/* ----------------------
+   Homework Form Fix
+------------------------*/
+#homeworkForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* consistent spacing */
+  max-width: 400px;
+}
+
+#homeworkForm input,
+#homeworkForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#homeworkForm textarea {
   min-height: 80px;
-  resize: vertical;
   line-height: 1.4;
+  resize: vertical;
+}
+
+#homeworkForm button {
+  width: 100%;
+  padding: 10px;
+  font-weight: 700;
+  background-color: #9a8c98;
+  color: #f2f2f2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#homeworkForm button:hover {
+  background-color: #c9ada7;
 }
 
 /* ----------------------
    Buttons
 ------------------------*/
 button {
-  font-family: 'Merriweather', serif;
-  font-size: 16px;
-  width: 100%;
-  max-width: 400px;
-  padding: 10px 16px;
-  margin: 6px 0;
-  border-radius: 6px;
+  background-color: #9a8c98;
+  color: #f2f2f2;
   border: none;
   font-weight: 700;
-  background-color: #9a8c98; /* muted mauve */
-  color: #f2f2f2;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s;
 }
 
 button:hover {
   background-color: #c9ada7;
 }
 
-/* ----------------------
-   Forms alignment (teacher + student)
-------------------------*/
-form {
+/* Tabs */
+.tabs {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 400px;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-/* Homework form specifically */
-#homeworkForm input[type="text"],
-#homeworkForm textarea,
-#homeworkForm button {
-  width: 100%;
-}
-
-/* Class form */
-#classForm input[type="text"],
-#classForm button {
-  width: 100%;
-}
-
-/* Add student */
-#addStudentClassSelector,
-#studentEmailInput,
-#addStudentBtn {
-  width: 100%;
-}
-
-/* ----------------------
-   Homework & Student lists
-------------------------*/
-ul#homeworkItems,
-ul#studentHomeworkList,
-#studentListContainer ul {
-  list-style-type: none;
-  padding: 0;
-  max-width: 400px;
-  margin-top: 0;
-}
-
-ul#homeworkItems li,
-ul#studentHomeworkList li,
-#studentListContainer ul li {
-  background: #22223b;
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #9a8c98;
   color: #f2f2f2;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background-color: #c9ada7;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  max-width: 800px;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #bbb;
+}
+
+th {
+  background-color: #22223b;
+  color: #f2f2f2;
+}
+
+tr:nth-child(even) td {
+  background-color: #33334d;
+}
+
+tr td button {
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  background-color: #bb2528;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+tr td button:hover {
+  background-color: #d32f2f;
+}
+
+/* Homework List */
+ul#homeworkItems {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+}
+
+ul#homeworkItems li {
+  background-color: #22223b;
   padding: 10px 12px;
   margin-bottom: 10px;
   border-radius: 6px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  font-size: 16px;
-  flex-wrap: wrap;
-}
-
-ul#homeworkItems li button,
-#studentListContainer ul li button {
-  width: auto;
-  padding: 5px 10px;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 4px;
-  margin-left: 8px;
+  align-items: center;
 }
 
 ul#homeworkItems li button {
   background-color: #d32f2f;
   color: white;
   border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 
-#studentListContainer ul li button {
-  background-color: #bb2528;
-  color: white;
-  border: none;
-}
-
-ul#studentHomeworkList li input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  cursor: pointer;
-}
-
-/* ----------------------
-   Responsive tweaks
-------------------------*/
-@media (max-width: 480px) {
-  body {
-    margin: 5px;
+/* Responsive */
+@media (max-width: 600px) {
+  input, select, textarea, button {
+    font-size: 18px;
+    padding: 12px;
   }
 
-  input[type="email"],
-  input[type="password"],
-  input[type="text"],
-  textarea,
-  select,
-  button {
-    font-size: 18px;
-    padding: 14px 16px;
-    max-width: 100%;
+  table, th, td {
+    font-size: 16px;
   }
 
-  ul#homeworkItems li,
-  ul#studentHomeworkList li,
-  #studentListContainer ul li {
-    font-size: 18px;
-    padding: 14px 16px;
+  ul#homeworkItems li {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  ul#homeworkItems li button,
-  #studentListContainer ul li button {
-    margin-left: 0;
+  ul#homeworkItems li button {
     margin-top: 8px;
     width: 100%;
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 
